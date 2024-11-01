@@ -28,3 +28,13 @@ def test_implement_generic_interface():
     clr.ImportExtensions(Linq)
     list = NumberList()
     assert list.Last() == 3
+
+def test_datatable_extensions():
+    import sys
+    import clr
+
+    clr.AddReference("System.Data")
+    clr.AddReference("System.Data.Common")
+    from System.Data import DataTable, DataTableExtensions
+    clr.ImportExtensions(DataTableExtensions)
+    dt = DataTable("test")
