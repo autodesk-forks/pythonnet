@@ -1,26 +1,6 @@
 version: 3.1.0
 pipeline_os: linux
 main_branch: dynamo_py3
-update_changelog_on_release: true
-create_github_release: true
-create_pr_release_to_master: true
-
-env:
-  - GITHUB_ACCESS_TOKEN_ID: github_access_token_acsbuildguy
-  # - SLACK_QUANTUM_BUILD_CHANNEL: dynamo-vera-notify
-  
-jenkins_creds:
-  -
-    type: secretText
-    credentialsId: svc_d_dyntest-apikey-artifactory-dynamo-team-nuget
-    secretText: API_KEY
-
-# code_analysis:
-#   sonarqube:
-#     source_encoding: UTF-8
-#     src: .
-#     coverage_reports:
-#       - coverage.info
 
 build:
   -
@@ -29,30 +9,6 @@ build:
       url: artifactory.dev.adskengineer.net/dynamo/pythonnet-build:2.0.1
     scripts:
       - scripts/install.sh
-
-ci_test:
-  tests:
-    -
-      customized_builder_image:
-        registry: artifactory
-        url: artifactory.dev.adskengineer.net/dynamo/pythonnet-build:2.0.1
-      scripts:
-        - scripts/install.sh
-        - scripts/test.sh
-
-  publish_html_reports:
-    -
-      report_name: Embed Tests
-      report_index_file: src/embed_tests/TestResults/embed_tests-output.html
-      report_dir: .
-    -
-      report_name: Module Tests
-      report_index_file: src/module_tests/TestResults/module_tests-output.html
-      report_dir: .
-    -
-      report_name: Python Tests Runner
-      report_index_file: src/python_tests_runner/TestResults/python_tests_runner-output.html
-      report_dir: .
 
 soc2:
   harmony:
@@ -63,25 +19,3 @@ soc2:
     third_party_lib_paths:
       - build\lib\pythonnet\runtime
     analyze_results	: true
-
-deployment:
-  # CILibrary doesn't yet support signing on Linux. I tried to get this going, but haven't figured it out yet. See the vera/nuget-deploy branch on the CILibrary repo.
-  # -
-  #   type: sign
-  #   files_to_sign:
-  #     - pythonnet/runtime/Python.Runtime.dll
-  -
-    type: customized
-    allow_branches: dynamo_py3
-    customized_builder_image:
-      registry: artifactory
-      url: artifactory.dev.adskengineer.net/dynamo/pythonnet-build:2.0.1
-    scripts:
-      - dotnet pack --configuration Release --version-suffix preview-ADSK-$(date +%s) --output "Release-Preview"
-      - dotnet nuget push --source "Dynamo Artifactory" --api-key ${API_KEY} Release-Preview/*.nupkg
-      - dotnet nuget push --skip-duplicate --source "Dynamo Artifactory" --api-key ${API_KEY} Release-Preview/*.snupkg
-
-  -
-    type: github
-    outputs:
-      - build\lib\pythonnet\runtime\Python.Runtime.dll
