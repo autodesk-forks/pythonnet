@@ -50,7 +50,7 @@ jobs:
           echo PYTHONNET_PYDLL=$(python -m find_libpython) >> $GITHUB_ENV
 
       - name: Python Tests
-        run: pytest
+        run: pytest --runtime mono
 
       - name: Embedding tests
         run: dotnet test --runtime any-ubuntu src/embed_tests/
