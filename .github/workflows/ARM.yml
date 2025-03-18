@@ -19,7 +19,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '6.0.x'
 
       - name: Clean previous install
         run: |
@@ -39,7 +39,7 @@ jobs:
           echo PYTHONNET_PYDLL=$(python -m find_libpython) >> $GITHUB_ENV
 
       - name: Embedding tests
-        run: dotnet test --logger "console;verbosity=detailed" src/embed_tests/
+        run: dotnet test --logger "console;verbosity=detailed" src/embed_tests/ --framework net6.0
 
       - name: Python Tests (Mono)
         run: python -m pytest --runtime mono
@@ -48,7 +48,7 @@ jobs:
         run: python -m pytest --runtime coreclr
 
       - name: Python tests run from .NET
-        run: dotnet test src/python_tests_runner/
+        run: dotnet test src/python_tests_runner/ --framework net6.0
 
       #- name: Perf tests
       #  run: |
