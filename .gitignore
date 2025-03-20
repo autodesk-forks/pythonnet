@@ -69,3 +69,7 @@ cov-int/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Autodesk testing setup
+/python
+/.venv

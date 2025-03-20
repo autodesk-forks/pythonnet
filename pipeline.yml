@@ -15,20 +15,13 @@ env:
 build:
   -
     scripts:
-      - pip install --upgrade -r requirements.txt
-      - pip install pytest numpy
-      - pip install -v .
-
+      - ./scripts/install.cmd
 
 ci_test:
   tests:
     -
       scripts:
-        - pytest
-        - dotnet test --runtime any-x64 --logger "console;verbosity=detailed" src/embed_tests/
-        - pytest --runtime coreclr
-        - pytest --runtime netfx
-        - dotnet test --runtime any-x64 src/python_tests_runner/
+        - ./scripts/test.cmd
 
 soc2:
   harmony:
