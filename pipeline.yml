@@ -1,14 +1,31 @@
 version: 3.1.0
-pipeline_os: linux
+pipeline_os: windows
 main_branch: dynamo_py3
+
+jenkins_creds:
+  -
+    type: secretText
+    credentialsId: dynamovisualprogramming_nuget_api_key
+    secretText: API_KEY
+
+env:
+  - SLACK_QUANTUM_BUILD_CHANNEL : "#dynamo-jenkinsbuild"
+  - JENKINS_NODE_WIN: DynamoWinBuild
 
 build:
   -
-    customized_builder_image:
-      registry: artifactory
-      url: artifactory.dev.adskengineer.net/dynamo/pythonnet-build:2.0.1
     scripts:
       - scripts/install.sh
+
+ci_test:
+  tests:
+    -
+      scripts:
+        - pytest
+        - dotnet test --runtime any-x64 --logger "console;verbosity=detailed" src/embed_tests/
+        - pytest --runtime coreclr
+        - pytest --runtime netfx
+        - dotnet test --runtime any-x64 src/python_tests_runner/
 
 soc2:
   harmony:
@@ -19,3 +36,16 @@ soc2:
     third_party_lib_paths:
       - build\lib\pythonnet\runtime
     analyze_results	: true
+
+deployment:
+  -
+    type: sign
+    files_to_sign:
+      - pythonnet/runtime/Python.Runtime.dll
+  -
+    type: customized
+    allow_branches: dynamo_py3
+    scripts:
+      - dotnet pack --configuration Release --version-suffix preview-$(date +%s) --output "Release-Preview"
+      - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.nupkg
+      - dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.snupkg
