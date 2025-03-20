@@ -15,7 +15,10 @@ env:
 build:
   -
     scripts:
-      - scripts/install.sh
+      - pip install --upgrade -r requirements.txt
+      - pip install pytest numpy
+      - pip install -v .
+
 
 ci_test:
   tests:
