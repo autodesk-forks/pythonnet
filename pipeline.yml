@@ -23,19 +23,20 @@ soc2:
       - PR-
       - dynamo_master
       - dynamo_py3
+      - nuget-publish
     third_party_lib_paths:
-      - build\lib\pythonnet\runtime
+      - pythonnet/runtime/
     analyze_results	: true
 
 deployment:
   -
     type: sign
     files_to_sign:
-      - pythonnet/runtime/Python.Runtime.dll
+      - ./pythonnet/runtime/Python.Runtime.dll
   -
     type: customized
     allow_branches: nuget-publish
     scripts:
-      - dotnet pack --configuration Release --version-suffix preview-$(date +%s) --output "Release-Preview"
+      - dotnet pack --no-build --configuration Release --version-suffix preview-$(date +%s) --output "Release-Preview"
       - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.nupkg
       - dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.snupkg
