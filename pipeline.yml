@@ -13,7 +13,7 @@ env:
   - JENKINS_NODE_WIN: DynamoWinBuild
 
 env_cmd:
-  - BUILD_DATE: powershell.exe (Get-Date).ToUniversalTime().ToString('yyyyMMddHHmmss')
+  - BUILD_DATE: pwsh.exe -NoLogo -NoProfile -Command (Get-Date).ToUniversalTime().ToString('yyyyMMddHHmmss')
 
 build:
   -
