@@ -70,6 +70,7 @@ cov-int/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Autodesk testing setup
+# Autodesk pipeline
 /python
 /.venv
+/Release-Preview

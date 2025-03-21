@@ -12,6 +12,9 @@ env:
   - SLACK_QUANTUM_BUILD_CHANNEL : "#dynamo-jenkinsbuild"
   - JENKINS_NODE_WIN: DynamoWinBuild
 
+env_cmd:
+  - BUILD_DATE: powershell.exe (Get-Date).ToUniversalTime().ToString('yyyyMMddHHmmss')
+
 build:
   -
     scripts:
@@ -38,6 +41,6 @@ deployment:
     type: customized
     allow_branches: nuget-publish
     scripts:
-      - dotnet pack --no-build --configuration Release --version-suffix preview-$(date +%s) --output "Release-Preview"
+      - dotnet pack --no-build --configuration Release --version-suffix preview-${BUILD_DATE} --output "Release-Preview"
       - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.nupkg
       - dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${API_KEY} Release-Preview/*.snupkg
