@@ -5,9 +5,15 @@ set pip=%python% -m pip
 set vPython=.\.venv\Scripts\python
 set vPip=%vPython% -m pip
 
+set PYTHONHOME=
+
 nuget install python -Version 3.8 -ExcludeVersion -OutputDirectory .
 %pip% --no-cache-dir install --index-url=%index_url% virtualenv
 %python% -m virtualenv .venv
-%vPip% --no-cache-dir install --index-url=%index_url% --upgrade -r requirements.txt
-%vPip% --no-cache-dir install --index-url=%index_url% pytest numpy
-%vPip% --no-cache-dir install -v .
+
+call .\.venv\Scripts\activate.bat
+
+pip --no-cache-dir install --index-url=%index_url% --upgrade -r requirements.txt
+pip --no-cache-dir install -v .
+
+deactivate
