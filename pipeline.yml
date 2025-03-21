@@ -16,6 +16,7 @@ build:
   -
     scripts:
       - ./scripts/install.cmd
+      - dotnet build --configuration Release
 
 soc2:
   harmony:
