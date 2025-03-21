@@ -16,7 +16,7 @@ build:
   -
     scripts:
       - ./scripts/install.cmd
-      - dotnet build --configuration Release
+      - dotnet build --configuration Release src\runtime\Python.Runtime.csproj
 
 soc2:
   harmony:
