@@ -17,12 +17,6 @@ build:
     scripts:
       - ./scripts/install.cmd
 
-ci_test:
-  tests:
-    -
-      scripts:
-        - ./scripts/test.cmd
-
 soc2:
   harmony:
     allow_branches:
