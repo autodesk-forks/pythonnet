@@ -42,5 +42,5 @@ deployment:
     allow_branches: nuget-publish
     scripts:
       - dotnet pack --no-build --configuration Release --version-suffix preview-%BUILD_DATE% --output "Release-Preview"
-      - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key %API_KEY% Release-Preview/*.nupkg
-      - dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key %API_KEY% Release-Preview/*.snupkg
+      - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key %API_KEY% "Release-Preview/*.nupkg"
+      - dotnet nuget push --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key %API_KEY% "Release-Preview/*.snupkg"
