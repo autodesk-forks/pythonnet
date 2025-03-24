@@ -39,7 +39,7 @@ deployment:
       - ./pythonnet/runtime/Python.Runtime.dll
   -
     type: customized
-    allow_branches: nuget-publish
+    allow_branches: dynamo_py3
     scripts:
       - dotnet pack --no-build --configuration Release --version-suffix preview-%BUILD_DATE% --output "Release-Preview"
       - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key %API_KEY% "Release-Preview/**/*.nupkg"
