@@ -232,6 +232,7 @@ namespace Python.Runtime
             }
 
             impl.indexer = info.indexer;
+            impl.del = info.del;
             impl.richcompare.Clear();
 
 
@@ -309,11 +310,13 @@ namespace Python.Runtime
 
         internal static bool ShouldBindMethod(MethodBase mb)
         {
+            if (mb is null) throw new ArgumentNullException(nameof(mb));
             return (mb.IsPublic || mb.IsFamily || mb.IsFamilyOrAssembly);
         }
 
         internal static bool ShouldBindField(FieldInfo fi)
         {
+            if (fi is null) throw new ArgumentNullException(nameof(fi));
             return (fi.IsPublic || fi.IsFamily || fi.IsFamilyOrAssembly);
         }
 
@@ -345,7 +348,7 @@ namespace Python.Runtime
 
         internal static bool ShouldBindEvent(EventInfo ei)
         {
-            return ShouldBindMethod(ei.GetAddMethod(true));
+            return ei.GetAddMethod(true) is { } add && ShouldBindMethod(add);
         }
 
         private static ClassInfo GetClassInfo(Type type, ClassBase impl)
@@ -589,6 +592,21 @@ namespace Python.Runtime
 
                 ob = new MethodObject(type, name, mlist);
                 ci.members[name] = ob.AllocObject();
+                if (name == nameof(IDictionary<int, int>.Remove)
+                    && mlist.Any(m => m.DeclaringType?.GetInterfaces()
+                        .Any(i => i.TryGetGenericDefinition() == typeof(IDictionary<,>)) is true))
+                {
+                    ci.del = new();
+                    ci.del.AddRange(mlist.Where(m => !m.IsStatic));
+                }
+                else if (name == nameof(IList<int>.RemoveAt)
+                         && mlist.Any(m => m.DeclaringType?.GetInterfaces()
+                             .Any(i => i.TryGetGenericDefinition() == typeof(IList<>)) is true))
+                {
+                    ci.del = new();
+                    ci.del.AddRange(mlist.Where(m => !m.IsStatic));
+                }
+
                 if (mlist.Any(OperatorMethod.IsOperatorMethod))
                 {
                     string pyName = OperatorMethod.GetPyMethodName(name);
@@ -647,6 +665,7 @@ namespace Python.Runtime
         private class ClassInfo
         {
             public Indexer? indexer;
+            public MethodBinder? del;
             public readonly Dictionary<string, PyObject> members = new();
 
             internal ClassInfo()
