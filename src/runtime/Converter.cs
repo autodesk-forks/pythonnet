@@ -140,10 +140,28 @@ namespace Python.Runtime
                 }
             }
 
+            // If the declared type is an interface, check if the actual runtime type
+            // is a concrete class. If so, prefer the concrete type to preserve access
+            // to all members. Only wrap as interface if the runtime type is also an
+            // interface or if we need explicit interface behavior.
             if (type.IsInterface)
             {
-                var ifaceObj = (InterfaceObject)ClassManager.GetClassImpl(type);
-                return ifaceObj.TryWrapObject(value);
+                Type actualType = value.GetType();
+                // Prefer concrete types over interface types to preserve full member access.
+                // This fixes issues where methods return concrete types that implement
+                // interfaces (e.g., IDisposable) but should be exposed as their
+                // concrete type for proper member access and Python 'with' statement support.
+                if (!actualType.IsInterface)
+                {
+                    // Use the actual concrete type instead of the interface
+                    type = actualType;
+                }
+                else
+                {
+                    // Runtime type is also an interface (rare: proxy/dynamic case), wrap as interface
+                    var ifaceObj = (InterfaceObject)ClassManager.GetClassImpl(type);
+                    return ifaceObj.TryWrapObject(value);
+                }
             }
 
             if (type.IsArray || type.IsEnum)
