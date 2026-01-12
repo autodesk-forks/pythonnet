@@ -209,6 +209,90 @@ class PyGetListImpl(test.GetListImpl):
             List<string> result = inst.GetList();
             CollectionAssert.AreEqual(new[] { "testing" }, result);
         }
+
+        /// <summary>
+        /// Test that when a method returns a concrete type implementing IDisposable,
+        /// the object is wrapped as the concrete type (not IDisposable interface),
+        /// preserving access to concrete type members and supporting 'with' statements.
+        /// </summary>
+        [Test]
+        public void ConcreteTypeImplementingIDisposable_IsWrappedAsConcreteType()
+        {
+            using var scope = Py.CreateScope();
+            scope.Import(typeof(ConcreteDisposableResource).Namespace, asname: "test");
+            
+            // Reset static state
+            ConcreteDisposableResource.IsDisposed = false;
+            ConcreteDisposableResource.InstanceCount = 0;
+
+            // Test that a method returning IDisposable but actually returning a concrete type
+            // wraps the object as the concrete type, not the interface
+            scope.Exec(@"
+import clr
+clr.AddReference('Python.EmbeddingTest')
+from Python.EmbeddingTest import ConcreteDisposableResource
+
+# Get a resource through a method that declares IDisposable return type
+resource = ConcreteDisposableResource.GetResource()
+
+# Verify it's wrapped as the concrete type, not IDisposable
+# The concrete type has a GetValue() method that IDisposable doesn't have
+value = resource.GetValue()
+assert value == 42, f'Expected 42, got {value}'
+
+# Verify the concrete type name is accessible
+type_name = resource.GetType().Name
+assert type_name == 'ConcreteDisposableResource', f'Expected ConcreteDisposableResource, got {type_name}'
+
+# Verify 'with' statement still works (IDisposable support)
+with resource:
+    inside_value = resource.GetValue()
+    assert inside_value == 42
+    assert ConcreteDisposableResource.IsDisposed == False
+
+# After 'with' block, should be disposed
+assert ConcreteDisposableResource.IsDisposed == True
+");
+
+            // Verify the resource was actually disposed
+            Assert.IsTrue(ConcreteDisposableResource.IsDisposed, "Resource should be disposed after 'with' statement");
+        }
+
+        /// <summary>
+        /// Test that Converter.ToPython wraps concrete types implementing interfaces
+        /// as the concrete type, not the interface, when the declared type is an interface.
+        /// </summary>
+        [Test]
+        public void Converter_ToPython_ConcreteTypeOverInterface()
+        {
+            using (Py.GIL())
+            {
+                // Create a concrete type that implements IDisposable
+                var concreteResource = new ConcreteDisposableResource(100);
+                
+                // Convert using IDisposable as the declared type (simulating method return type)
+                var pyObject = Converter.ToPython(concreteResource, typeof(IDisposable));
+                
+                // Verify it's wrapped as the concrete type, not IDisposable
+                var wrappedObject = ManagedType.GetManagedObject(pyObject.BorrowOrThrow());
+                Assert.IsInstanceOf<CLRObject>(wrappedObject);
+                
+                var clrObject = (CLRObject)wrappedObject;
+                var wrappedType = clrObject.inst.GetType();
+                
+                // Should be the concrete type, not IDisposable
+                Assert.AreEqual(typeof(ConcreteDisposableResource), wrappedType);
+                Assert.AreNotEqual(typeof(IDisposable), wrappedType);
+                
+                // Verify we can access concrete type members from Python
+                using var scope = Py.CreateScope();
+                scope.Set("resource", pyObject);
+                var result = scope.Eval("resource.GetValue()");
+                Assert.AreEqual(100, result.As<int>());
+                
+                pyObject.Dispose();
+            }
+        }
     }
 
     public interface IGetList
@@ -219,5 +303,45 @@ class PyGetListImpl(test.GetListImpl):
     public class GetListImpl : IGetList
     {
         public List<string> GetList() => new() { "testing" };
+    }
+
+    /// <summary>
+    /// A concrete class implementing IDisposable with additional members.
+    /// Used to test that methods returning IDisposable but actually returning
+    /// concrete types are wrapped as the concrete type, not the interface.
+    /// </summary>
+    public class ConcreteDisposableResource : IDisposable
+    {
+        public static bool IsDisposed { get; set; }
+        public static int InstanceCount { get; set; }
+
+        private readonly int _value;
+
+        public ConcreteDisposableResource(int value = 42)
+        {
+            _value = value;
+            InstanceCount++;
+            IsDisposed = false;
+        }
+
+        /// <summary>
+        /// A method that exists only on the concrete type, not on IDisposable.
+        /// This verifies that the object is wrapped as the concrete type.
+        /// </summary>
+        public int GetValue() => _value;
+
+        public void Dispose()
+        {
+            IsDisposed = true;
+        }
+
+        /// <summary>
+        /// A method that declares IDisposable return type but actually returns
+        /// the concrete type. This is the scenario we're testing.
+        /// </summary>
+        public static IDisposable GetResource()
+        {
+            return new ConcreteDisposableResource();
+        }
     }
 }
