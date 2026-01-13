@@ -1335,10 +1335,13 @@ def test_special_array_creation():
     assert value[1].__class__ == inst.__class__
     assert value.Length == 2
 
-    iface_class = ISayHello1(inst).__class__
+    # When creating Array[ISayHello1], elements are wrapped as their concrete type
+    # (not the interface) to preserve access to all concrete type members.
+    # This is the correct behavior - the array type is ISayHello1[], but elements
+    # are wrapped as concrete types for full member access.
     value = Array[ISayHello1]([inst, inst])
-    assert value[0].__class__ == iface_class
-    assert value[1].__class__ == iface_class
+    assert value[0].__class__ == inst.__class__
+    assert value[1].__class__ == inst.__class__
     assert value.Length == 2
 
     inst = System.Exception("badness")

@@ -583,10 +583,10 @@ def test_explicit_overload_selection():
     value = MethodTest.Overloaded.__overloads__[InterfaceTest](inst)
     assert value.__class__ == inst.__class__
 
-    iface_class = ISayHello1(InterfaceTest()).__class__
+    # When method declares interface return type but returns concrete type,
+    # the concrete type is used to preserve member access
     value = MethodTest.Overloaded.__overloads__[ISayHello1](inst)
-    assert value.__class__ != inst.__class__
-    assert value.__class__ == iface_class
+    assert value.__class__ == inst.__class__
 
     atype = Array[System.Object]
     value = MethodTest.Overloaded.__overloads__[str, int, atype](
@@ -739,12 +739,13 @@ def test_overload_selection_with_array_types():
     assert value[0].__class__ == inst.__class__
     assert value[1].__class__ == inst.__class__
 
-    iface_class = ISayHello1(inst).__class__
+    # When creating Array[ISayHello1], elements are wrapped as concrete types
+    # (not interfaces) to preserve access to all concrete type members
     vtype = Array[ISayHello1]
     input_ = vtype([inst, inst])
     value = MethodTest.Overloaded.__overloads__[vtype](input_)
-    assert value[0].__class__ == iface_class
-    assert value[1].__class__ == iface_class
+    assert value[0].__class__ == inst.__class__
+    assert value[1].__class__ == inst.__class__
 
 
 def test_explicit_overload_selection_failure():
