@@ -5,16 +5,10 @@
     <IsPackable>false</IsPackable>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-
   </PropertyGroup>
-
   <ItemGroup>
-    <Reference Include="Python.Runtime.dll">
-      <HintPath>..\..\pythonnet\runtime\Python.Runtime.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <ProjectReference Include="..\runtime\Python.Runtime.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">

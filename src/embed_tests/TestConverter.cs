@@ -286,7 +286,7 @@ assert ConcreteDisposableResource.IsDisposed == True
                 
                 // Verify we can access concrete type members from Python
                 using var scope = Py.CreateScope();
-                scope.Set("resource", pyObject);
+                scope.Set("resource", pyObject.MoveToPyObject());
                 var result = scope.Eval("resource.GetValue()");
                 Assert.AreEqual(100, result.As<int>());
                 
