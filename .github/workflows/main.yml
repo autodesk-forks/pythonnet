@@ -28,10 +28,6 @@ jobs:
             platform: x64
             instance: ubuntu-22.04
 
-          - category: macos
-            platform: x64
-            instance: macos-13
-
         python: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
