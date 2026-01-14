@@ -142,8 +142,20 @@ namespace Python.Runtime
 
             if (type.IsInterface)
             {
-                var ifaceObj = (InterfaceObject)ClassManager.GetClassImpl(type);
-                return ifaceObj.TryWrapObject(value);
+                Type actualType = value.GetType();
+                // This fixes issues where methods return concrete types that implement
+                // interfaces (e.g., IDisposable) but should be exposed as their
+                // concrete type for proper member access and Python 'with' statement support.
+                if (!actualType.IsInterface && type == typeof(IDisposable) && typeof(IDisposable).IsAssignableFrom(actualType))
+                {
+                    type = actualType;
+                }
+                else
+                {
+                    // Runtime type is also an interface (rare: proxy/dynamic case), wrap as interface
+                    var ifaceObj = (InterfaceObject)ClassManager.GetClassImpl(type);
+                    return ifaceObj.TryWrapObject(value);
+                }
             }
 
             if (type.IsArray || type.IsEnum)
