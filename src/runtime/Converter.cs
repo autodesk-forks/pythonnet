@@ -118,6 +118,105 @@ namespace Python.Runtime
 
         internal static NewReference ToPythonDetectType(object? value)
             => value is null ? new NewReference(Runtime.PyNone) : ToPython(value, value.GetType());
+
+        /// <summary>
+        /// Checks if a concrete type has explicit interface implementations for the given interface
+        /// or any of its base interfaces. Explicit implementations are only accessible through
+        /// the interface type, so we need to wrap as the interface to preserve access.
+        /// </summary>
+        private static bool HasExplicitInterfaceImplementations(Type concreteType, Type interfaceType)
+        {
+            // Get all interfaces to check: the declared interface and all its base interfaces
+            var interfacesToCheck = new HashSet<Type> { interfaceType };
+            foreach (var baseInterface in interfaceType.GetInterfaces())
+            {
+                interfacesToCheck.Add(baseInterface);
+            }
+
+            foreach (var iface in interfacesToCheck)
+            {
+                // Skip if the concrete type doesn't implement this interface
+                if (!iface.IsAssignableFrom(concreteType))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    // Get the interface mapping to see how members are implemented
+                    var interfaceMap = concreteType.GetInterfaceMap(iface);
+
+                    // Check each interface method/property to see if it's explicitly implemented
+                    for (int i = 0; i < interfaceMap.InterfaceMethods.Length; i++)
+                    {
+                        var interfaceMethod = interfaceMap.InterfaceMethods[i];
+                        var targetMethod = interfaceMap.TargetMethods[i];
+
+                        // Explicit interface implementations have names like "InterfaceName.MethodName"
+                        // and are not directly accessible on the concrete type
+                        if (targetMethod.Name.Contains("."))
+                        {
+                            // This is an explicit interface implementation
+                            // Also verify it's not directly accessible on the concrete type
+                            var directMethod = concreteType.GetMethod(
+                                interfaceMethod.Name,
+                                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly,
+                                null,
+                                interfaceMethod.GetParameters().Select(p => p.ParameterType).ToArray(),
+                                null);
+
+                            if (directMethod == null)
+                            {
+                                // Method is explicitly implemented and not directly accessible
+                                return true;
+                            }
+                        }
+                    }
+
+                    // Check properties as well
+                    foreach (var prop in iface.GetProperties())
+                    {
+                        var getter = prop.GetGetMethod();
+                        var setter = prop.GetSetMethod();
+
+                        if (getter != null)
+                        {
+                            var concreteGetter = concreteType.GetProperty(
+                                prop.Name,
+                                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+                            if (concreteGetter == null)
+                            {
+                                // Property getter is explicitly implemented
+                                return true;
+                            }
+                        }
+
+                        if (setter != null)
+                        {
+                            var concreteSetter = concreteType.GetProperty(
+                                prop.Name,
+                                BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+                            if (concreteSetter == null)
+                            {
+                                // Property setter is explicitly implemented
+                                return true;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // If GetInterfaceMap fails (e.g., for generic interfaces), assume no explicit implementations
+                    // and prefer concrete type
+                    continue;
+                }
+            }
+
+            return false;
+        }
+
         internal static NewReference ToPython(object? value, Type type)
         {
             if (value is PyObject pyObj)
@@ -153,7 +252,18 @@ namespace Python.Runtime
                 // concrete type for proper member access and Python 'with' statement support.
                 if (!actualType.IsInterface)
                 {
-                    // Use the actual concrete type instead of the interface
+                    // Check if the declared interface (or any of its base interfaces) has
+                    // members that are explicitly implemented in the concrete type.
+                    // If so, we need to wrap as the interface to preserve access to those members.
+                    if (HasExplicitInterfaceImplementations(actualType, type))
+                    {
+                        // Wrap as interface to preserve access to explicit interface implementations
+                        var ifaceObj = (InterfaceObject)ClassManager.GetClassImpl(type);
+                        return ifaceObj.TryWrapObject(value);
+                    }
+
+                    // No explicit interface implementations, use the actual concrete type
+                    // to preserve full member access (e.g., for IDisposable with 'with' statement)
                     type = actualType;
                 }
                 else
