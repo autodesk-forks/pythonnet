@@ -200,8 +200,6 @@ def test_interface():
     assert ob.bar("bar", 2) == "bar/bar"
     assert FunctionsTest.test_bar(ob, "bar", 2) == "bar/bar"
 
-    # pass_through will convert from InterfaceTestClass -> IInterfaceTest,
-    # causing a new wrapper object to be created. Hence id will differ.
     x = FunctionsTest.pass_through_interface(ob)
     assert id(x) == id(ob)
 
