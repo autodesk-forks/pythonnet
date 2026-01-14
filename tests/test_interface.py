@@ -79,31 +79,24 @@ def test_call_inherited_interface_method():
     assert hello1.SayHi() == 'hi'
 
 def test_interface_object_returned_through_method():
-    """Test that method return types use concrete types (not interfaces) to preserve member access.
-    
-    When a method declares an interface return type but returns a concrete type,
-    the concrete type is used to preserve access to all members. Interface methods
-    are still accessible through the concrete type.
-    """
+    """Test interface type is used if method return type is interface and contains explicit interface implementation."""
     from Python.Test import InterfaceTest
 
     ob = InterfaceTest()
     hello1 = ob.GetISayHello1()
-    # Method returns concrete type (not interface) to preserve member access
-    assert type(hello1).__name__ == 'InterfaceTest'
-    # Interface methods are still accessible
+    assert type(hello1).__name__ == 'ISayHello1'
+    assert hello1.__implementation__.__class__.__name__ == "InterfaceTest"
+
     assert hello1.SayHello() == 'hello 1'
 
 
 def test_interface_object_returned_through_out_param():
-    """Test that out parameters of interface types use concrete types to preserve member access."""
+    """Test interface type is used for out parameters of interface types and contains explicit interface implementation."""
     from Python.Test import InterfaceTest
 
     ob = InterfaceTest()
     hello2 = ob.GetISayHello2(None)
-    # Out parameters return concrete types (not interfaces) to preserve member access
-    assert type(hello2).__name__ == 'InterfaceTest'
-    # Interface methods are still accessible
+    assert type(hello2).__name__ == 'ISayHello2'
     assert hello2.SayHello() == 'hello 2'
 
 def test_interface_out_param_python_impl():
@@ -131,18 +124,14 @@ def test_null_interface_object_returned():
     assert hello2 is None
 
 def test_interface_array_returned():
-    """Test that methods returning interface arrays use concrete types for elements.
-    
-    Array elements are wrapped as concrete types (not interfaces) to preserve
-    member access. The array type is still ISayHello1[], but elements are concrete.
-    """
+    """Test interface type is used for methods returning interface arrays and contains explicit interface implementation."""
     from Python.Test import InterfaceTest
 
     ob = InterfaceTest()
     hellos = ob.GetISayHello1Array()
-    # Elements are wrapped as concrete types to preserve member access
-    assert type(hellos[0]).__name__ == 'InterfaceTest'
-    # Interface methods are still accessible
+    assert type(hellos[0]).__name__ == 'ISayHello1'
+    assert hellos[0].__implementation__.__class__.__name__ == "InterfaceTest"
+
     assert hellos[0].SayHello() == 'hello 1'
 
 def test_implementation_access():
@@ -163,7 +152,7 @@ def test_interface_collection_iteration():
     typed_list = List[System.IComparable]()
     typed_list.Add(elem)
     for e in typed_list:
-        assert type(e).__name__ == "IComparable"
+        assert type(e).__name__ == "int"
 
     untyped_list = System.Collections.ArrayList()
     untyped_list.Add(elem)

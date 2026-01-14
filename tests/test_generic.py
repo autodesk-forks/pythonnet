@@ -558,12 +558,11 @@ def test_method_overload_selection_with_generic_types():
     value = MethodTest.Overloaded.__overloads__[vtype](input_)
     assert value.value.__class__ == inst.__class__
 
-    # When generic wrapper contains interface type, the value is wrapped as concrete type
-    # (not interface) to preserve access to all concrete type members
+    iface_class = ISayHello1(inst).__class__
     vtype = GenericWrapper[ISayHello1]
     input_ = vtype(inst)
     value = MethodTest.Overloaded.__overloads__[vtype](input_)
-    assert value.value.__class__ == inst.__class__
+    assert value.value.__class__ == iface_class
 
     vtype = System.Array[GenericWrapper[int]]
     input_ = vtype([GenericWrapper[int](0), GenericWrapper[int](1)])
@@ -738,13 +737,12 @@ def test_overload_selection_with_arrays_of_generic_types():
     assert value[0].value.__class__ == inst.__class__
     assert value.Length == 2
 
-    # When creating array of generic wrappers with interface type, values are wrapped
-    # as concrete types (not interfaces) to preserve access to all concrete type members
+    iface_class = ISayHello1(inst).__class__
     gtype = GenericWrapper[ISayHello1]
     vtype = System.Array[gtype]
     input_ = vtype([gtype(inst), gtype(inst)])
     value = MethodTest.Overloaded.__overloads__[vtype](input_)
-    assert value[0].value.__class__ == inst.__class__
+    assert value[0].value.__class__ == iface_class
     assert value.Length == 2
 
 
