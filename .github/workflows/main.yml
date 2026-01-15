@@ -17,6 +17,10 @@ jobs:
       matrix:
         os:
           - category: windows
+            platform: x86
+            instance: windows-latest
+
+          - category: windows
             platform: x64
             instance: windows-latest
 
@@ -67,6 +71,12 @@ jobs:
         run: |
           Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append -InputObject "PYTHONNET_PYDLL=$(python -m find_libpython)"
           Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append -InputObject "PYTHONHOME=$(python -c 'import sys; print(sys.prefix)')"
+
+      - name: Install .NET 6.0 x86 runtime
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'
+          architecture: ${{ matrix.os.platform }}
 
       - name: Embedding tests
         run: dotnet test --runtime any-${{ matrix.os.platform }} --logger "console;verbosity=detailed" src/embed_tests/
