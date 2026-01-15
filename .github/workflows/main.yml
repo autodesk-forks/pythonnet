@@ -45,13 +45,6 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: Install .NET 6.0 x86 Runtime (Windows x86 only)
-        if: ${{ matrix.os.category == 'windows' && matrix.os.platform == 'x86' }}
-        run: |
-          $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "$env:TEMP\dotnet-install.ps1"
-          & "$env:TEMP\dotnet-install.ps1" -Architecture x86 -Runtime dotnet -Version 6.0.0 -InstallDir "$env:ProgramFiles(x86)\dotnet"
-
       - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v2
         with:
