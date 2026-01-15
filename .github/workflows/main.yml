@@ -74,10 +74,11 @@ jobs:
 
       - name: Install .NET 6.0 x86 runtime
         if: ${{ matrix.os.category == 'windows' && matrix.os.platform == 'x86' }}
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0.x'
-          architecture: x86
+        run: |
+          $installScript = "$env:TEMP\dotnet-install.ps1"
+          Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile $installScript
+          & $installScript -Channel "6.0" -Architecture "x86" -InstallDir "${env:ProgramFiles(x86)}\dotnet" -Runtime "dotnet"
+          Remove-Item $installScript
 
       - name: Embedding tests
         run: dotnet test --runtime any-${{ matrix.os.platform }} --logger "console;verbosity=detailed" src/embed_tests/
