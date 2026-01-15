@@ -7,6 +7,10 @@ This document follows the conventions laid out in [Keep a CHANGELOG][].
 
 ## [Unreleased][]
 
+### Fixed
+
+-   Fixed an issue where a concrete type object implementing an IDisposable when returned from a method within a `with` statement, for example, was incorrectly resolved as the IDisposable interface type instead of the concrete type. 
+
 ### Added
 
 -   Added support for hiding members from inherited classes.
