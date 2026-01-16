@@ -5,7 +5,7 @@ project adheres to [Semantic Versioning][].
 
 This document follows the conventions laid out in [Keep a CHANGELOG][].
 
-## [Unreleased][]
+## Unreleased
 
 ### Fixed
 
@@ -20,8 +20,38 @@ This document follows the conventions laid out in [Keep a CHANGELOG][].
 -   Added `ToPythonAs<T>()` extension method to allow for explicit conversion using a specific type. ([#2311][i2311])
 -   Added `IComparable` and `IEquatable` implementations to `PyInt`, `PyFloat`, and `PyString`
      to compare with primitive .NET types like `long`.
+-  Support `del obj[...]` for types derived from `IList<T>` and `IDictionary<K, V>`
 
 ### Changed
+### Fixed
+
+-  Fixed crash when trying to `del clrObj[...]` for non-arrays
+- ci: properly exclude job (#2542)
+
+## [3.0.5](https://github.com/pythonnet/pythonnet/releases/tag/v3.0.5) - 2024-12-13
+
+### Added
+
+-  Support for Python 3.13 (#2454)
+
+
+## [3.0.4](https://github.com/pythonnet/pythonnet/releases/tag/v3.0.4) - 2024-09-19
+
+### Added
+
+-   Added `ToPythonAs<T>()` extension method to allow for explicit conversion
+    using a specific type. ([#2311][i2311])
+-   Added `IComparable` and `IEquatable` implementations to `PyInt`, `PyFloat`,
+    and `PyString` to compare with primitive .NET types like `long`.
+
+### Changed
+
+-   Added a `FormatterFactory` member in RuntimeData to create formatters with
+    parameters. For compatibility, the `FormatterType` member is still present
+    and has precedence when defining both `FormatterFactory` and `FormatterType`
+-   Added a post-serialization and a pre-deserialization step callbacks to
+    extend (de)serialization process
+-   Added an API to stash serialized data on Python capsules
 
 -   Do not set errors when type conversion fails for valid reasons. See (https://git.autodesk.com/Dynamo/pythonnet/pull/64)
 -   Improve error handling when dlls import fail. See (https://git.autodesk.com/Dynamo/pythonnet/pull/63)
@@ -29,6 +59,10 @@ This document follows the conventions laid out in [Keep a CHANGELOG][].
 ### Fixed
 
 -   Fixed RecursionError for reverse operators on C# operable types from python. See #2240
+-   Fixed crash when .NET event has no `AddMethod`
+-   Fixed probing for assemblies in `sys.path` failing when a path in `sys.path`
+    has invalid characters. See #2376
+-   Fixed possible access violation exception on shutdown. See ([#1977][i1977])
 
 -   Fixed operators overloading conflict with unbounded, extension method identification. See (https://git.autodesk.com/Dynamo/pythonnet/pull/47)
 
@@ -978,3 +1012,4 @@ This version improves performance on benchmarks significantly compared to 2.3.
 [i1481]: https://github.com/pythonnet/pythonnet/issues/1481
 [i1672]: https://github.com/pythonnet/pythonnet/pull/1672
 [i2311]: https://github.com/pythonnet/pythonnet/issues/2311
+[i1977]: https://github.com/pythonnet/pythonnet/issues/1977
