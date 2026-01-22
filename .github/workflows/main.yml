@@ -3,7 +3,7 @@ name: Main
 on:
   push:
     branches:
-      - dynamo_py3
+      - pythonnet3
   pull_request:
 
 jobs:

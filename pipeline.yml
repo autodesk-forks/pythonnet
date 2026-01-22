@@ -1,6 +1,6 @@
 version: 3.1.0
 pipeline_os: windows
-main_branch: dynamo_py3
+main_branch: pythonnet3
 
 jenkins_creds:
   -
@@ -26,7 +26,7 @@ soc2:
     allow_branches:
       - PR-
       - dynamo_master
-      - dynamo_py3
+      - pythonnet3
       - nuget-publish
     third_party_lib_paths:
       - pythonnet/runtime/
@@ -39,7 +39,7 @@ deployment:
       - ./pythonnet/runtime/Python.Runtime.dll
   -
     type: customized
-    allow_branches: dynamo_py3
+    allow_branches: pythonnet3
     scripts:
       - dotnet pack --no-build --configuration Release --version-suffix preview-%BUILD_DATE% --output "Release-Preview"
       - dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key %API_KEY% "Release-Preview/**/*.nupkg"
